@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>منّك لإلك </title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#0ea5a4; /* teal */
+      --accent:#06b6d4;
+      --dark:#0f172a;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --bg:#f8fafc;
+      --success:#16a34a;
+      --danger:#ef4444;
+    }
+    *{box-sizing:border-box;font-family:'Cairo',sans-serif}
+    body{margin:0;background:var(--bg);color:var(--dark);line-height:1.4}
+    header{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:10px;background:#fff;color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .nav{display:flex;gap:10px;align-items:center}
+    .btn{background:#fff;color:var(--primary);padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+    .container{max-width:1100px;margin:18px auto;padding:0 16px}
+    .search-bar{display:flex;gap:8px;margin-bottom:14px}
+    input[type="search"]{flex:1;padding:10px;border-radius:10px;border:1px solid #e6e9ef}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    .card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.06);position:relative}
+    .card img{width:100%;height:150px;object-fit:cover;border-radius:8px}
+    .title{font-weight:700;margin-top:8px}
+    .meta{color:var(--muted);font-size:14px}
+    .price{color:var(--primary);font-weight:700;margin-top:6px}
+    footer{padding:18px;text-align:center;color:var(--muted)}
+    .fav-btn{position:absolute;left:10px;top:10px;background:rgba(255,255,255,0.9);border-radius:8px;padding:6px;cursor:pointer}
+    .small{font-size:13px}
+    /* details */
+    .details{display:flex;gap:18px;flex-wrap:wrap}
+    .left{flex:1;min-width:280px}
+    .right{width:320px}
+    .recommend{background:#f1f6f6;padding:10px;border-radius:10px;margin-top:12px}
+    /* dashboard */
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    label{display:block;font-size:14px;margin-bottom:6px}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #e6e9ef;border-radius:8px}
+    .chat-widget{position:fixed;left:18px;bottom:18px;width:340px;max-width:90%;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
+    .chat-header{background:var(--primary);color:#fff;padding:10px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center}
+    .chat-body{background:#fff;height:280px;overflow:auto;padding:12px}
+    .chat-input{display:flex;padding:10px;background:#fff;border-radius:0 0 10px 10px;gap:8px}
+    .msg{margin:8px 0;padding:8px 10px;border-radius:12px;max-width:80%}
+    .msg.user{background:linear-gradient(90deg,#e6fffb,#ccfbf1);margin-left:auto}
+    .msg.bot{background:#f1f5f9}
+    /* modal */
+    .modal{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:40}
+    .modal .card{width:420px}
+    .hidden{display:none}
+    /* rating */
+    .stars{display:flex;gap:6px}
+    .star{cursor:pointer;font-size:20px}
+    /* toast */
+    .toast{position:fixed;right:18px;bottom:18px;background:#111;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(2,6,23,0.3)}
+    /* responsive */
+    @media (max-width:640px){
+      .details{flex-direction:column}
+      .right{width:100%}
+      header{padding:12px}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo">مـل</div>
+      <div>
+        <div style="font-weight:700">منّك لإلك</div>
+        <div style="font-size:13px;opacity:.9">منصة ذكية لتأجير الأدوات</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div id="userArea" style="display:flex;align-items:center;gap:8px">
+        <!-- login area will be rendered here -->
+      </div>
+      <button class="btn" id="to-add">أضف أداة</button>
+      <button class="btn" id="to-dashboard">لوحة التحكم</button>
+      <button class="btn" id="to-home">الرئيسية</button>
+    </nav>
+  </header>
+
+  <main class="container" id="app">
+
+    <!-- Landing / Search -->
+    <section id="homeView">
+      <div class="search-bar">
+        <input type="search" id="query" placeholder="ابحث عن أداة أو موقع..." autocomplete="off" />
+        <select id="categoryFilter">
+          <option value="">كل التصنيفات</option>
+          <option value="كهربائية">أدوات كهربائية</option>
+          <option value="بناء">أدوات بناء</option>
+          <option value="تنظيف">أدوات تنظيف</option>
+          <option value="تصوير">أدوات تصوير</option>
+        </select>
+        <button class="btn" id="searchBtn">ابحث</button>
+      </div>
+
+      <div class="row" style="align-items:center;justify-content:space-between">
+        <h2>أدوات متاحة</h2>
+        <div class="meta">مثال بيانات للعرض الشخصي بالهاكاثون</div>
+      </div>
+
+      <div id="toolsGrid" class="grid" style="margin-top:12px"></div>
+    </section>
+
+    <!-- Details -->
+    <section id="detailsView" style="display:none">
+      <button class="btn" id="backToHome" style="margin-bottom:12px">عودة</button>
+      <div class="card details">
+        <div class="left">
+          <img id="detailImage" src="" alt="أداة" style="width:100%;height:320px;object-fit:cover;border-radius:8px" />
+          <h3 id="detailTitle" style="margin-top:12px"></h3>
+          <div id="detailDesc" class="meta" style="margin-top:8px"></div>
+          <div class="price" id="detailPrice" style="margin-top:10px"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <button class="btn" id="rentBtn">استأجر الآن</button>
+            <div class="small" id="avgRating">—</div>
+          </div>
+
+          <div class="recommend">
+            <strong>توصيات ذكية</strong>
+            <ul id="recommendList" style="padding-left:18px;margin-top:8px"></ul>
+          </div>
+        </div>
+
+        <aside class="right card">
+          <div style="font-weight:700">معلومات المؤجر</div>
+          <div class="meta" id="ownerInfo">—</div>
+
+          <div style="margin-top:12px">
+            <div class="meta">حالة الأداة</div>
+            <div id="toolCondition">—</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="meta">التوفر</div>
+            <div id="toolAvail">فوري</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="meta">قيم الأداة</div>
+            <div class="stars" id="rateControl"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Add tool -->
+    <section id="addView" style="display:none">
+      <button class="btn" id="backFromAdd" style="margin-bottom:12px">عودة</button>
+      <div class="card" style="padding:18px">
+        <h3>أضف أداة للإيجار</h3>
+        <div style="margin-top:12px">
+          <label>اسم الأداة</label>
+          <input id="inputTitle" placeholder="مثال: دريل كهربائي Bosch 750W" />
+        </div>
+        <div style="margin-top:12px">
+          <label>الفئة</label>
+          <select id="inputCategory">
+            <option value="كهربائية">أدوات كهربائية</option>
+            <option value="بناء">أدوات بناء</option>
+            <option value="تنظيف">أدوات تنظيف</option>
+            <option value="تصوير">أدوات تصوير</option>
+          </select>
+        </div>
+        <div style="margin-top:12px">
+          <label>السعر اليومي (د.أ)</label>
+          <input id="inputPrice" type="number" value="5" />
+        </div>
+        <div style="margin-top:12px">
+          <label>المدينة</label>
+          <input id="inputCity" value="المفرق" />
+        </div>
+        <div style="margin-top:12px">
+          <label>صورة الأداة (اختياري)</label>
+          <input id="inputImage" type="file" accept="image/*" />
+          <div id="preview" style="margin-top:8px"></div>
+        </div>
+        <div style="margin-top:12px">
+          <label>وصف (اختياري)</label>
+          <textarea id="inputDesc" rows="3" placeholder="أضف وصفًا أو اتركه ليتم اقتراح وصف تلقائيًا"></textarea>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" id="addToolBtn">أضف الأداة</button>
+          <button class="btn" id="aiDescribeBtn" style="background:#fff;color:var(--primary)">اقترح وصف (AI)</button>
+      
+  </div>
+        <div id="addMsg" class="meta" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashView" style="display:none">
+      <button class="btn" id="backFromDash" style="margin-bottom:12px">عودة</button>
+      <div class="row">
+        <div class="card" style="flex:1;min-width:300px">
+          <h3>أدواتي</h3>
+          <div id="myToolsList" style="margin-top:8px"></div>
+        </div>
+        <div class="card" style="width:360px">
+          <h3>حجوزاتي</h3>
+          <div id="myBookings">لا توجد حجوزات تجريبية</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal hidden">
+    <div class="card" style="padding:16px">
+      <h3>تسجيل دخول سريع</h3>
+      <div style="margin-top:8px">
+        <label>الاسم</label>
+        <input id="loginName" placeholder="اسمك" />
+      </div>
+      <div style="margin-top:8px">
+        <label>صورة شخصية (اختياري)</label>
+        <input id="loginAvatar" type="file" accept="image/*" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button class="btn" id="doLogin">دخول</button>
+        <button class="btn" id="closeLogin">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast placeholder -->
+  <div id="toastRoot"></div>
+
+<script>
+/* ========== Utilities & Persistence ========== */
+const LS_TOOLS_KEY = 'mank_tools_v1';
+const LS_USER_KEY = 'mank_user_v1';
+
+function toast(msg, time=2500){
+  const t = document.createElement('div'); t.className='toast'; t.innerText=msg;
+  document.getElementById('toastRoot').appendChild(t);
+  setTimeout(()=> t.remove(), time);
+}
+
+function saveTools(arr){ localStorage.setItem(LS_TOOLS_KEY, JSON.stringify(arr)); }
+function loadTools(){ try{ return JSON.parse(localStorage.getItem(LS_TOOLS_KEY)) || null }catch(e){ return null }}
+function saveUser(u){ localStorage.setItem(LS_USER_KEY, JSON.stringify(u)); }
+function loadUser(){ try{ return JSON.parse(localStorage.getItem(LS_USER_KEY)) || null }catch(e){ return null }}
+
+/* ===== Default demo tools (used only if nothing in storage) ===== */
+const defaultTools = [
+  { id: 't1', title: 'دريل كهربائي Bosch 750W', desc: 'دريل كهربائي بقدرة 750 واط، حالة ممتازة، مناسب لأعمال الصيانة المنزلية.', price: 8, city: 'المفرق', category: 'كهربائية', owner: {name:'أحمد', rating:4.7}, condition: 'جيد جدًا', image: 'https://images.unsplash.com/photo-1581091870622-3d45b04f1f4d?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=8c3b3b9ed3c5521f0c4d01d2c7a2d1b2', favorites:[], ratings: [] },
+  { id: 't2', title: 'ماكينة لحام محمولة', desc: 'ماكينة لحام خفيفة مناسبة لشغل صغير وخفيف، تعمل بالكهرباء.', price: 20, city: 'عمان', category: 'بناء', owner: {name:'سليم', rating:4.5}, condition: 'مستعملة بحالة جيدة', image: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=ea6f2f5a3f2f6fca0f8b1a73b6d2c3f4', favorites:[], ratings: [] },
+  { id: 't3', title: 'كاميرا كانون (للفعاليات التصويرية)', desc: 'كاميرا احترافية مناسبة لتصوير حفلات وأعمال تجارية.', price: 45, city: 'المفرق', category: 'تصوير', owner: {name:'ليلى', rating:4.9}, condition: 'جديدة', image: 'https://images.unsplash.com/photo-1519183071298-a2962be54a19?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=7f6c3d9b6b8d4b1c9a7b8c6d5e4f3a2b', favorites:[], ratings: [] }
+];
+
+let tools = loadTools() || defaultTools.slice();
+let currentUser = loadUser();
+let lastSearchResults = tools.slice();
+
+/* ===== DOM Elements ===== */
+const toolsGrid = document.getElementById('toolsGrid');
+const queryEl = document.getElementById('query');
+const categoryFilter = document.getElementById('categoryFilter');
+const searchBtn = document.getElementById('searchBtn');
+
+/* ===== Render Header User Area ===== */
+function renderUserArea(){
+  const root = document.getElementById('userArea'); root.innerHTML='';
+  if(currentUser){
+    const avatar = document.createElement('img'); avatar.src = currentUser.avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><rect fill="%230ea5a4" rx="8" width="36" height="36"/></svg>';
+    avatar.style.width='36px'; avatar.style.height='36px'; avatar.style.borderRadius='8px'; avatar.style.objectFit='cover';
+    const name = document.createElement('div'); name.innerHTML = `<div style="font-weight:700">${currentUser.name}</div><div class="small">مالك</div>`;
+    const logout = document.createElement('button'); logout.className='btn'; logout.innerText='تسجيل خروج'; logout.onclick = ()=>{ currentUser=null; saveUser(null); renderUserArea(); toast('تم تسجيل الخروج'); };
+    root.appendChild(avatar); root.appendChild(name); root.appendChild(logout);
+  } else {
+    const loginBtn = document.createElement('button'); loginBtn.className='btn'; loginBtn.innerText='تسجيل / دخول'; loginBtn.onclick = ()=>{ document.getElementById('loginModal').classList.remove('hidden'); };
+    root.appendChild(loginBtn);
+  }
+}
+renderUserArea();
+
+/* ===== Render Tools Grid ===== */
+function renderTools(list){
+  toolsGrid.innerHTML = '';
+  if(!list.length){ toolsGrid.innerHTML = '<div class="card meta">لا توجد أدوات مطابقة</div>'; return; }
+  list.forEach(t=>{
+    const el = document.createElement('div'); el.className='card';
+    // favorite state for current user
+    const fav = currentUser && t.favorites && t.favorites.includes(currentUser.name);
+    el.innerHTML = `
+      <button class="fav-btn" title="أضف للمفضلة">${fav? '★' : '☆'}</button>
+      <img src="${t.image}" alt="${t.title}" />
+      <div class="title">${t.title}</div>
+      <div class="meta">${t.city} • ${t.category}</div>
+      <div class="price">${t.price} د.أ / يوم</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" data-id="${t.id}" onclick="openDetails('${t.id}')">عرض التفاصيل</button>
+        <button style="background:#eef" onclick="quickRent('${t.id}')">استأجر سريع</button>
+      </div>
+    `;
+    const favBtn = el.querySelector('.fav-btn');
+    favBtn.addEventListener('click', ()=> toggleFavorite(t.id, favBtn));
+
+    toolsGrid.appendChild(el);
+  });
+}
+
+/* ===== Search & Filter (improved) ===== */
+function searchTools(){
+  const q = queryEl.value.trim();
+  const cat = categoryFilter.value;
+  const res = tools.filter(t=>{
+    const hay = (t.title+ ' ' + t.desc + ' ' + t.city + ' ' + t.category).toLowerCase();
+    const matchQ = !q || hay.includes(q.toLowerCase());
+    const matchC = !cat || t.category===cat;
+    return matchQ && matchC;
+  });
+  lastSearchResults = res.slice();
+  renderTools(res);
+}
+searchBtn.addEventListener('click', searchTools);
+queryEl.addEventListener('keyup', (e)=>{ if(e.key==='Enter') searchTools(); });
+
+/* ===== Details ===== */
+const detailsView = document.getElementById('detailsView');
+const homeView = document.getElementById('homeView');
+const addView = document.getElementById('addView');
+const dashView = document.getElementById('dashView');
+
+function openDetails(id){
+  const t = tools.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('detailImage').src = t.image;
+  document.getElementById('detailTitle').innerText = t.title;
+  document.getElementById('detailDesc').innerText = t.desc;
+  document.getElementById('detailPrice').innerText = t.price + ' د.أ / يوم';
+  document.getElementById('ownerInfo').innerText = `${t.owner.name} • تقييم ${t.owner.rating}`;
+  document.getElementById('toolCondition').innerText = t.condition;
+  // recommendations
+  const recList = document.getElementById('recommendList'); recList.innerHTML='';
+  const recs = generateRecommendations(t);
+  recs.forEach(r=>{ const li = document.createElement('li'); li.innerText = r; recList.appendChild(li); });
+
+  // average rating
+  const avg = t.ratings && t.ratings.length? (t.ratings.reduce((s,v)=>s+v,0)/t.ratings.length).toFixed(1) : '—';
+  document.getElementById('avgRating').innerText = avg!=='—' ? `⭐ متوسط التقييم: ${avg}` : 'لا تقييم حتى الآن';
+
+  // render rate control
+  const rc = document.getElementById('rateControl'); rc.innerHTML='';
+  for(let i=1;i<=5;i++){
+    const s = document.createElement('span'); s.className='star'; s.innerText='☆'; s.dataset.val = i;
+    s.onclick = ()=>{ rateTool(id, i); }
+    rc.appendChild(s);
+  }
+
+  homeView.style.display='none'; addView.style.display='none'; dashView.style.display='none';
+  detailsView.style.display='block';
+}
+
+document.getElementById('backToHome').addEventListener('click', ()=>{ detailsView.style.display='none'; homeView.style.display='block'; renderTools(lastSearchResults); });
+
+/* ===== Recommendations (same rules) ===== */
+function generateRecommendations(tool){
+  const recs = [];
+  if(tool.category==='بناء'){ recs.push('خوذة أمان 🪖'); recs.push('نظارات حماية 👓'); }
+  if(tool.category==='كهربائية'){ recs.push('طقم مفكات'); recs.push('سلك تمديد 10م'); }
+  if(tool.category==='تصوير'){ recs.push('حامل ثلاثي (Tripod)'); recs.push('بطاريات احتياطية'); }
+  if(!recs.length){ recs.push('قفازات عمل'); recs.push('حقيبة للنقل'); }
+  return recs;
+}
+
+/* ===== Quick Rent (mock) ===== */
+function quickRent(id){
+  if(!currentUser){ toast('سجل دخول أولاً لتتمكن من الحجز'); document.getElementById('loginModal').classList.remove('hidden'); return; }
+  toast('تم إنشاء طلب تجريبي للاستئجار — سيتم ربط الدفع لاحقًا');
+}
+
+/* ===== Add tool (with image preview) ===== */
+document.getElementById('to-add').addEventListener('click', ()=>{ homeView.style.display='none'; detailsView.style.display='none'; dashView.style.display='none'; addView.style.display='block'; });
+document.getElementById('backFromAdd').addEventListener('click', ()=>{ addView.style.display='none'; homeView.style.display='block'; renderTools(lastSearchResults); });
+
+const inputImage = document.getElementById('inputImage');
+inputImage.addEventListener('change', ()=>{
+  const f = inputImage.files[0];
+  if(!f) return; const reader = new FileReader(); reader.onload = e=>{ document.getElementById('preview').innerHTML = `<img src="${e.target.result}" style="width:120px;border-radius:8px;">`; inputImage.dataset.data = e.target.result; };
+  reader.readAsDataURL(f);
+});
+
+document.getElementById('addToolBtn').addEventListener('click', ()=>{
+  const title = document.getElementById('inputTitle').value.trim();
+  const price = Number(document.getElementById('inputPrice').value) || 5;
+  const city = document.getElementById('inputCity').value.trim() || 'المفرق';
+  const cat = document.getElementById('inputCategory').value;
+  let desc = document.getElementById('inputDesc').value.trim();
+  if(!title){ document.getElementById('addMsg').innerText='الرجاء إدخال اسم الأداة'; return; }
+  if(!desc){ desc = title + ' — وصف مقترح: أداة بحالة جيدة.' }
+  const image = inputImage.dataset.data || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=efb2b4c8b2c6f0e2d2d8b8a3c1d2e3f4';
+  const newTool = { id: 't'+(Date.now()), title, desc, price, city, category:cat, owner:{name: currentUser? currentUser.name : 'أنت', rating: currentUser? 5 : 4.5}, condition:'جديد', image, favorites: [], ratings: [] };
+  tools.unshift(newTool);
+  saveTools(tools);
+  document.getElementById('addMsg').innerText='تمت إضافة الأداة بنجاح!';
+  document.getElementById('inputTitle').value=''; document.getElementById('inputDesc').value=''; document.getElementById('preview').innerHTML=''; delete inputImage.dataset.data; toast('تمت إضافة الأداة');
+  renderTools(tools);
+});
+
+/* ===== AI Describe (mock) ===== */
+document.getElementById('aiDescribeBtn').addEventListener('click', ()=>{
+  const title = document.getElementById('inputTitle').value.trim();
+  if(!title){ document.getElementById('addMsg').innerText='اكتب اسم الأداة أولاً ليتم اقتراح وصف.'; return; }
+  // Simple local heuristic instead of live API
+  const desc = `${title} — أداة بحالة ممتازة مناسبة للاستخدام المنزلي والمهني الصغير. تشمل الإسكان الملائم وسهولة التشغيل.`;
+  document.getElementById('inputDesc').value = desc;
+  document.getElementById('addMsg').innerText='تم اقتراح وصف بواسطة (AI) تجريبي.';
+});
+
+/* ===== Dashboard ===== */
+document.getElementById('to-dashboard').addEventListener('click', ()=>{ homeView.style.display='none'; detailsView.style.display='none'; addView.style.display='none'; dashView.style.display='block'; renderMyTools(); });
+document.getElementById('backFromDash').addEventListener('click', ()=>{ dashView.style.display='none'; homeView.style.display='block'; renderTools(lastSearchResults); });
+
+function renderMyTools(){
+  const el = document.getElementById('myToolsList'); el.innerHTML='';
+  tools.forEach(t=>{
+    const div = document.createElement('div');
+    div.style.padding='8px 0'; div.style.borderBottom='1px dashed #eef';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${t.title}</strong><div class="meta">${t.city} • ${t.price} د.أ</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="openDetails('${t.id}')">عرض</button>
+        <button class="btn" onclick="deleteTool('${t.id}')" style="background:var(--danger);color:#fff">حذف</button>
+      </div>
+    </div>`;
+    el.appendChild(div);
+  });
+}
+
+function deleteTool(id){ if(!confirm('هل أنت متأكد من حذف هذه الأداة؟')) return; tools = tools.filter(t=>t.id!==id); saveTools(tools); renderMyTools(); renderTools(tools); toast('تم حذف الأداة'); }
+
+/* ===== Favorites ===== */
+function toggleFavorite(id, btn){ if(!currentUser){ toast('سجل دخول لتستخدم المفضلة'); document.getElementById('loginModal').classList.remove('hidden'); return; }
+  const t = tools.find(x=>x.id===id); if(!t) return;
+  const idx = t.favorites.indexOf(currentUser.name);
+  if(idx===-1) t.favorites.push(currentUser.name); else t.favorites.splice(idx,1);
+  saveTools(tools); renderTools(lastSearchResults.length? lastSearchResults : tools); toast(idx===-1? 'أضيفت للمفضلة' : 'أُزيلت من المفضلة');
+}
+
+/* ===== Rating ===== */
+function rateTool(id, val){ if(!currentUser){ toast('سجل دخول لتقيم الأدوات'); document.getElementById('loginModal').classList.remove('hidden'); return; }
+  const t = tools.find(x=>x.id===id); if(!t) return; t.ratings = t.ratings || [];
+  // For simplicity allow multiple ratings from same user by replacing previous
+  const prevIdx = t.ratingsUserIndex ? t.ratingsUserIndex[currentUser.name] : -1;
+  if(!t.ratingsUserIndex) t.ratingsUserIndex = {};
+  if(t.ratingsUserIndex[currentUser.name]){
+    // replace: remove previous from ratings array by index info stored
+    t.ratings[t.ratingsUserIndex[currentUser.name]-1] = val; // simple approach
+  } else {
+    t.ratings.push(val);
+    t.ratingsUserIndex[currentUser.name] = t.ratings.length;
+  }
+  saveTools(tools);
+  toast('شكراً لتقييمك');
+  openDetails(id); // refresh view
+}
+
+/* ===== Login modal actions ===== */
+document.getElementById('closeLogin').addEventListener('click', ()=> document.getElementById('loginModal').classList.add('hidden'));
+document.getElementById('doLogin').addEventListener('click', ()=>{
+  const name = document.getElementById('loginName').value.trim();
+  const f = document.getElementById('loginAvatar').files[0];
+  if(!name){ alert('اكتب اسمك'); return; }
+  if(f){ const r=new FileReader(); r.onload=e=>{ currentUser = { name, avatar: e.target.result }; saveUser(currentUser); renderUserArea(); document.getElementById('loginModal').classList.add('hidden'); toast('تم تسجيل الدخول'); } ; r.readAsDataURL(f); }
+  else { currentUser = { name }; saveUser(currentUser); renderUserArea(); document.getElementById('loginModal').classList.add('hidden'); toast('تم تسجيل الدخول'); }
+});
+
+/* ===== Simple chatbot (kept mock) ===== */
+const chatBody = document.getElementById('chatBody');
+const chatInput = document.getElementById('chatInput');
+document.getElementById('sendChat').addEventListener('click', sendChat);
+chatInput.addEventListener('keyup', (e)=>{ if(e.key==='Enter') sendChat(); });
+
+function sendChat(){ const text = chatInput.value.trim(); if(!text) return; appendMsg(text,'user'); chatInput.value=''; setTimeout(()=>{ const reply = botReply(text); appendMsg(reply,'bot'); chatBody.scrollTop = chatBody.scrollHeight; },500); }
+function appendMsg(text,who){ const d=document.createElement('div'); d.className='msg ' + (who==='user'?'user':'bot'); d.innerText=text; chatBody.appendChild(d); }
+function botReply(text){ const t=text.toLowerCase(); if(t.includes('كيف') && t.includes('أجر')) return 'دور على الأداة -> عرض التفاصيل -> استأجر. بقدر أساعدك اختار مدينة؟'; if(t.includes('المفرق')) return 'بالمفرق دريل 8 د.أ وكاميرا 45 د.أ — تحب تشوفهم؟'; if(t.includes('أرخص')) return 'عايز أرخص حسب أي مدينة؟'; if(t.includes('هلا')||t.includes('مرحبا')) return 'يا هلا! كيف بساعدك؟'; return 'وصل سؤالك — ممكن توضح شوي؟'; }
+
+/* ===== Init render ===== */
+function init(){ renderUserArea(); renderTools(tools); }
+init();
+
+// expose some functions for inline onclick
+window.openDetails = openDetails;
+window.quickRent = quickRent;
+window.deleteTool = deleteTool;
+window.toggleFavorite = toggleFavorite;
+window.rateTool = rateTool;
+</script>
+</body>
+</html>
